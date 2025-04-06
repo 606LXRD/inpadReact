@@ -15,3 +15,5 @@ export const buttons = [
         params: {},
     },
 ]
+
+//слой устарел

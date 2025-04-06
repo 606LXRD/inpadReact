@@ -1,5 +1,5 @@
 import {Radio} from "antd";
-import {QueryParams} from "../../shared/api/todos/model.ts";
+import {QueryParams} from "../../shared/api/users/model.ts";
 import {buttons} from './config.ts';
 
 const{Button,Group} = Radio;

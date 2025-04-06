@@ -1,5 +1,5 @@
 import {Checkbox, Spin} from "antd";
-import {taskModel} from "../../entities/task";
+import {taskModel} from "../../entities/project";
 import {Todo} from "../../shared/api/todos/model";
 
 type Props = {

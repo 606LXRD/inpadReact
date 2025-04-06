@@ -1,0 +1,16 @@
+
+.projectcardcontent {
+    text-align: center;
+}
+
+.projectcardtitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.projectcarddescription {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}

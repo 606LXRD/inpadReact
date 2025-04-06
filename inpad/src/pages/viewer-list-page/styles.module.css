@@ -1,0 +1,32 @@
+body {
+    padding: 0px;
+    margin: 0px;
+}
+
+#mapid {
+    height: 100vh;
+}
+
+.mapbox-control-time {
+    padding: 20px;
+    background-color: white;
+}
+
+#exposure-gradient-container {
+    display: none;
+    background-color: white;
+    padding: 0 10px 5px;
+}
+
+#exposure-gradient {
+    height: 20px;
+    background-image: linear-gradient(to right, rgb(0 0 255/ 0.5), rgb(0 255 0 / 0.5), rgb(255 0 0 / 0.5));
+    display: flex;
+}
+
+#exposure-gradient>div {
+    flex: 1;
+    border: 1px solid white;
+    text-align: center;
+    font-weight: bold;
+}
