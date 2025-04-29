@@ -1,7 +1,8 @@
 import { getUserDataById, getUserId,} from "../users";
 import {UserData} from "../users/model.ts";
-import {Project, User, ProjectData} from "./model.ts";
+import {Project, User, ProjectData,} from "./model.ts";
 import {httpClient,getAuthToken,setAuthHeader} from "../http-client";
+import {projectStore} from "../../../entities/project/model";
 
 export const getUserProjects = (): Promise<Project[]> => {
     const userId = getUserId();
@@ -23,11 +24,17 @@ export const getUserProjects = (): Promise<Project[]> => {
             throw error;
         });
 };
+const getFormattedDate = () => {
+    const today = new Date(); // Создаем объект Date
+    return today.toISOString(); // Преобразуем в строку в формате ISO 8601
+};
 export const onCreate = async () => {
     const userId = getUserId();
     if (!userId) {
         throw new Error('User ID is missing or invalid');
     }
+    const formattedDate = getFormattedDate(); // Получаем отформатированную дату
+
     const userData: UserData = await getUserDataById(userId);
     const requestBody = {
         projectName: "untitled",
@@ -38,7 +45,7 @@ export const onCreate = async () => {
         startCoordinates: null,
         insideCoordinates: null,
         outsideCoordinates: null,
-        dtCreation: null,
+        dtCreation: formattedDate,
         dtUpdate: null
     };
 
@@ -58,6 +65,7 @@ export const onCreate = async () => {
 export const deleteProject = (id: number) => {
     httpClient.delete(`projects/${id}`)
         .then((response) => {
+            projectStore.loadProjects();
             console.log('Project deleted successfully:', response);
         })
         .catch((error) => {
@@ -167,9 +175,9 @@ export const saveJsonProject = async (id: number, projectdata: ProjectData)    =
         projectName: project.projectname,
         state: project.state,
         projectInfo: project.projectinfo,
-        startCoordinates: project.startcoordinates,
-        insideCoordinates: project.startcoordinates,
-        outsideCoordinates: project.startcoordinates,
+        startCoordinates: project.startCoordinates,
+        insideCoordinates: project.insideCoordinates,
+        outsideCoordinates: project.outsideCoordinates,
         dtCreation: project.dtcreation,
         dtUpdate: project.dtupdate,
         projectData: projectdata,
@@ -223,3 +231,72 @@ export const setAllCordsForProject = async (projectId: number, start_coordinates
         },
     }).json();
 };
+
+export const onSetFactCoeff = async (
+projectId : number,
+modelId : string,
+flatAreaCoeff: number,
+commAreaCoeff: number,
+parkingFlatCoeff: number,
+parkingCommCoeff: number,
+residentsCoeff: number,
+ddu10Coeff: number,
+utilCoeff: number,
+
+) => {
+    const userId = getUserId();
+    if (!userId) {
+        throw new Error('User ID is missing or invalid');
+    }
+
+    const requestBody = {
+        projectId : projectId,
+        modelId : modelId,
+        flatAreaCoeff: flatAreaCoeff,
+        commAreaCoeff: commAreaCoeff,
+        parkingFlatCoeff: parkingFlatCoeff,
+        parkingCommCoeff: parkingCommCoeff,
+        residentsCoeff: residentsCoeff,
+        ddu10Coeff: ddu10Coeff,
+        utilCoeff: utilCoeff,
+    };
+
+    const authToken = getAuthToken();
+    if (!authToken) {
+        throw new Error('Authentication token is missing');
+    }
+
+    return httpClient.post('coefficientfactual/', {
+        json: requestBody,
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+    }).json();
+};
+
+export const fetchTEP = async (id: number): Promise<Project> => {
+    const authToken = getAuthToken();
+    if (!authToken) {
+        throw new Error('Authentication token is missing');
+    }
+
+    return httpClient.get(`coefficientfactual/${id}`, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+    }).json<Project>();
+};
+
+export const fetchTEPofID = async (id: number): Promise<Project> => {
+    const authToken = getAuthToken();
+    if (!authToken) {
+        throw new Error('Authentication token is missing');
+    }
+
+    return httpClient.get(`coefficientfactual/${id}`, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+    }).json<Project>();
+};
+

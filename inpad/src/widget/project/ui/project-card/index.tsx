@@ -1,22 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Image } from 'antd';
 import logo from '../../../../shared/ui/img/logo.png';
-// import logo from '../../../../shared/map-pic-storage/199.png';
-//  import logo from '../../../../public/199.png';
-
 import { ButtonCard } from '../button-card';
 import { DeleteActions } from '../button-card/delete-button';
 import { EditActions } from '../button-card/edit-button';
 import { AddUsersActions } from '../button-card/add-users-button';
 import {
-    deleteProject, getProjectId,
+    deleteProject, fetchProject, getProjectId,
     onUpdate,
     updateUserListForProject
 } from '../../../../shared/api/projects';
 import '@ant-design/v5-patch-for-react-19';
 import {useNavigate} from "react-router-dom";
 import styles from './styles.module.css';
-
+import {projectStore} from '../../../../entities/project/model'
 export interface ProjectCardProps {
     project: Project;
 }
@@ -36,6 +33,8 @@ export interface Project {
     projectinfo: string;
     projectdata: any;
     userList: User[];
+    dtcreation: Date;
+    dtupdate: Date;
 }
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     const [showButtons, setShowButtons] = useState(false);
@@ -45,6 +44,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     const [newProjectName, setNewProjectName] = useState(project.projectname || '');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+
+    const primarySrc = `/${project.id}.png`;
+    const [imageSrc, setImageSrc] = React.useState(primarySrc);
+    const [newProject, setNewProject] = useState(true);
 
     const navigate = useNavigate();
     const handleButtonClick = (buttonType: 'addusers' | 'delete' | 'edit') => {
@@ -76,29 +79,70 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             const response = await onUpdate(projectId, newValue);
             console.log('Проект успешно обновлен:', response);
             setNewProjectName(newValue);
+            await projectStore.loadProjects();
+
         } catch (error) {
             console.error('Ошибка при обновлении проекта:', error);
         }
     };
-
-    const handleOpenProject = async()=>{
+    const checkNewProject = async () => {
         try {
-            console.log(project.id);
-            getProjectId();
-            if (project.id) {
-                window.localStorage.setItem('project_id', project.id.toString());
-                navigate(`/viewer/${project.id}`);
-            } else {
-                navigate('/viewer');
+            const projectId = project.id;
+            const response = await fetchProject(projectId);
+            console.log(response.projectData);
+            if(response.projectData) {
+                setNewProject(true);
+                console.log('true');
+            }
+            else {
+                setNewProject(false);
+                console.log('false');
+
             }
         } catch (error) {
-            console.error('Ошибка при создании проекта:', error);
+            console.error('Ошибка при обновлении проекта:', error);
         }
+    };
+    const handleDeleteProject =  () => {
+        console.log('Проект успешно eeee3333ee:');
+
+        try {
+
+             projectStore.loadProjects();
+            console.log('Проект успешно eeeeee:');
+
+
+        } catch (error) {
+            console.error('Ошибка при удалении проекта:', error);
+        }
+    };
+    const handleOpenProject = async()=>{
+        getProjectId();
+        window.localStorage.setItem('project_id', project.id.toString());
+        try {
+            const projectId = project.id;
+            const response = await fetchProject(projectId);
+            console.log(response.startCoordinates);
+            if(response.startCoordinates){
+                console.log('true');
+                navigate(`/viewer/${project.id}`);
+            }
+            else {
+                console.log('false');
+                navigate(`/previewer/${project.id}`);
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении проекта:', error);
+        }
+        // checkNewProject();
+        // console.log('newProject is ', newProject);
+        // if (newProject) {
+        //     navigate(`/viewer/${project.id}`);
+        // }
+        // else{
+        //     navigate(`/previewer/${project.id}`);
+        // }
     }
-
-    const primarySrc = `/${project.id}.png`;
-    const [imageSrc, setImageSrc] = React.useState(primarySrc);
-
 
     return (
         <Card className={styles.card}>
@@ -142,6 +186,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                         }}
                         onConfirm={() => {
                             deleteProject(project.id);
+                            handleDeleteProject;
                             setDeleteMode(false);
                             setActiveMode(null);
                         }}
@@ -201,7 +246,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                         <h2 className={styles.projectName}>
                             {project.projectname || 'Без названия'}
                         </h2>
-                        <p className={styles.projectDate}>Создан 20.03.2025</p>
+                        <p className={styles.projectDate}>{project.dtcreation}</p>
                     </>
                 )}
             </div>

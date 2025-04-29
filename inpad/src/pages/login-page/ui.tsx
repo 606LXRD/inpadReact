@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, Form, message, Radio } from 'antd';
-import { login } from '../../shared/api/users';
+import {getUserId, login} from '../../shared/api/users';
 import { register } from '../../shared/api/users';
 
 export const LoginPage = () => {
@@ -13,7 +13,6 @@ export const LoginPage = () => {
         password: '',
         state: null,
         projectList: [],
-        modelList: [],
     });
 
     const navigate = useNavigate();
@@ -23,7 +22,8 @@ export const LoginPage = () => {
             if (isLoginMode) {
                 await login({ login: credentials.login, password: credentials.password });
                 message.success('Вход выполнен успешно!');
-                navigate('/1');
+                const id = getUserId();
+                navigate(`/projects/${id}`);
             } else {
                 await register({
                     username: credentials.username,
@@ -31,10 +31,10 @@ export const LoginPage = () => {
                     password: credentials.password,
                     state: true,
                     projectList: [],
-                    modelList: [],
                 });
                 message.success('Регистрация выполнена успешно!');
-                navigate('/1');
+                const id = getUserId();
+                navigate(`/projects/${id}`);
             }
         } catch (error) {
             console.error('Error:', error);

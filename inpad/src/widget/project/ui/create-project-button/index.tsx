@@ -13,19 +13,6 @@ interface ProjectResponse {
 
 export const CreateProjectButton: React.FC = observer(() => {
     const handleCreateProject = async () => {
-        // try {
-        //     const newProject = await onCreate() as ProjectResponse;
-        //     console.log(newProject);
-        //     console.log(newProject.id);
-        //     window.localStorage.setItem('project_id', newProject.id.toString());
-        //     if (newProject && newProject.id) {
-        //         navigate(`/previewer/${newProject.id}`);
-        //     } else {
-        //         navigate('/previewer');
-        //     }
-        // } catch (error) {
-        //     console.error('Ошибка при создании проекта:', error);
-        // }
         projectStore.createProject();
     };
     const [hoveredButton, setHoveredButton] = useState<string | null>(null);

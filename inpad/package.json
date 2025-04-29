@@ -21,6 +21,7 @@
     "ky": "^1.7.5",
     "lodash.throttle": "^4.1.1",
     "mapbox-gl": "^3.10.0",
+    "mapbox-gl-draw-circle": "^1.1.2",
     "mapbox-gl-shade-layer": "^0.13.1",
     "mapbox-gl-shadow-simulator": "^0.60.0",
     "mobx": "^6.13.6",

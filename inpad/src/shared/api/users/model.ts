@@ -13,7 +13,6 @@ export type UserData = {
     login: string;
     role: string;
     token?: string;
-    modelList: any[] | null;
 };
 
 export type LoginParams ={
@@ -29,7 +28,6 @@ export interface RegistrationData {
     password: string;
     state: boolean;
     projectList: string[];
-    modelList: any[];
 }
 
 export interface RegisterResponse {

@@ -1,50 +1,59 @@
-import {createBrowserRouter} from "react-router-dom";
-import {MainLayout} from "../../shared/ui/main-layout";
-import {LoginPage} from "../../pages/login-page";
-import {ProjectListPage} from "../../pages/project-list-page";
-import {ViewerPage} from "../../pages/viewer-list-page";
-import {PreViewerPage} from "../../pages/pre-viewer-page";
-import {MainPage} from "../../pages/main-page";
-import {WebSocketComponent} from "../../pages/web-socket-test";
-
+import { createBrowserRouter } from "react-router-dom";
+import { MainLayout } from "../../shared/ui/main-layout";
+import { LoginPage } from "../../pages/login-page";
+import { ProjectListPage } from "../../pages/project-list-page";
+import { ViewerPage } from "../../pages/viewer-list-page";
+import { PreViewerPage } from "../../pages/pre-viewer-page";
+import { MainPage } from "../../pages/main-page";
+import { WebSocketComponent } from "../../pages/web-socket-test";
+import { FaqPage } from "../../pages/faq-page";
+import { AnimatedRoutes } from "../../shared/motion";
 
 export const router = createBrowserRouter([
     {
-        path: '/',
-        element:<MainLayout/>,
-        children:[
+        path: "/",
+        element: (
+            <MainLayout>
+                <AnimatedRoutes />
+            </MainLayout>
+        ),
+        children: [
             {
                 index: true,
-                element: <LoginPage/>
+                element: <MainPage />,
             },
             {
-                path:':id',
-                element:<ProjectListPage/>
+                path: 'login',
+                element: <LoginPage />,
             },
             {
-                path:'viewer/:projectId',
-                element:<ViewerPage/>
+                path: "projects/:id",
+                element: <ProjectListPage />,
             },
             {
-                path:'viewer',
-                element:<ViewerPage/>
+                path: "viewer/:projectId",
+                element: <ViewerPage />,
             },
             {
-                path:'previewer',
-                element:<PreViewerPage/>
+                path: "viewer",
+                element: <ViewerPage />,
             },
             {
-                path:'previewer/:projectId',
-                element:<PreViewerPage/>
+                path: "previewer",
+                element: <PreViewerPage />,
             },
             {
-                path:'mainpage',
-                element:<MainPage/>
+                path: "previewer/:projectId",
+                element: <PreViewerPage />,
             },
             {
-                path:'websocketcomponent',
-                element:<WebSocketComponent/>
+                path: "websocketcomponent",
+                element: <WebSocketComponent />,
             },
-        ]
-    }
-])
+            {
+                path: "faq",
+                element: <FaqPage />,
+            },
+        ],
+    },
+]);

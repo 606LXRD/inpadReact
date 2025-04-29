@@ -2,7 +2,6 @@ import { Button } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import styles from '../style.module.css';
 
-
 interface DeleteTriggerProps {
     onActivate: () => void;
 }

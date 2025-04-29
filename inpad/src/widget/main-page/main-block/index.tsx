@@ -1,8 +1,14 @@
 import {Button, Image} from 'antd';
 import logo1 from "../../../shared/ui/img/logo-man-page.png";
-
+import {useNavigate} from "react-router-dom";
+import {projectStore} from "../../../entities/project/model";
 
 export const PictureComponent = () => {
+    const navigate = useNavigate();
+    const handleStart = async () => {
+        navigate('/login');
+    };
+
     return (
         <div style={{ height: '100%', width: '100%', background: '#F4F4F7', paddingInline: 30, display: 'flex', justifyContent: 'center',
              alignItems: 'center', position: 'relative' }}>
@@ -15,7 +21,8 @@ export const PictureComponent = () => {
                         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.08)',
                         borderRadius: '5px',
                         border: 'none',
-                    }}>Начать</Button>
+                    }}
+                    onClick={handleStart}>Начать</Button>
                 </div>
             </div>
 
