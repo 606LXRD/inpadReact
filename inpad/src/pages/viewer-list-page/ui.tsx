@@ -49,6 +49,7 @@ interface TechEconPerformance {
     objectType: string | null;
 }
 interface ImportedPolygonData {
+    projectId: number | null;
     geoData: {
         type: string;
         features: Array<{
@@ -93,8 +94,9 @@ export const ViewerPage: React.FC = () => {
         if (!parsedData.geoData || !parsedData.polygonInfo) {
             throw new Error("Invalid input format. Missing required fields.");
         }
-
+        const projectId = getProjectId();
         const result: ImportedPolygonData = {
+            projectId: projectId,
             geoData: {
                 type: parsedData.geoData.type || "FeatureCollection",
                 features: parsedData.geoData.features.map((feature: any) => ({
@@ -137,9 +139,9 @@ export const ViewerPage: React.FC = () => {
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
         });
-
+        const projectId = getProjectId();
         client.onConnect = (frame) => {
-            client.subscribe('/topic/messages', (message) => {
+            client.subscribe(`/topic/messages/`, (message) => {
                 if (message.body) {
                     setMessages((prevMessages) => [...prevMessages, message.body]);
                     const importedData = convertToImportedPolygonData(message.body);
@@ -155,7 +157,6 @@ export const ViewerPage: React.FC = () => {
 
         setStompClient(client);
         client.activate();
-console.log('Math.PI / 180',Math.PI / 180)
         return () => {
             if (client && client.active) {
                 client.deactivate();
@@ -164,7 +165,7 @@ console.log('Math.PI / 180',Math.PI / 180)
     }, []);
     useEffect(() => {
         activePolygonIdRef.current = activePolygonId;
-        console.log('activePolygonIdRef',activePolygonIdRef.current);
+        //  console.log('activePolygonIdRef',activePolygonIdRef.current);
         loadTEP();
     }, [activePolygonId]);
     useEffect(() => {
@@ -188,7 +189,7 @@ console.log('Math.PI / 180',Math.PI / 180)
                     const prj_inf = await fetchProject(projectId);
                     const startCoordinatesString = prj_inf.startCoordinates;
                     const insideCoordinatesString = prj_inf.insideCoordinates;
-                     setProjectName(prj_inf.projectname);
+                    setProjectName(prj_inf.projectname);
                     if (startCoordinatesString) {
                         const cleanedString = startCoordinatesString.replace(/[\[\]]/g, '');
 
@@ -373,7 +374,8 @@ console.log('Math.PI / 180',Math.PI / 180)
 
     }, []);
     useEffect(() => {
-        if (isAdjustingFloorsRef.current === true && isAdjustingFloors === false) {
+        console.log(isAdjustingFloorsRef.current, isAdjustingFloors)
+        if (isAdjustingFloorsRef.current === true && isAdjustingFloors === true) {
             exportPolygonsToJSON();
         }
 
@@ -442,7 +444,8 @@ console.log('Math.PI / 180',Math.PI / 180)
     const handleDrawCreate = (e: any) => {
         const newFeature = e.features[0];
         const area = turf.area(newFeature);
-        const roundedArea = Math.round(area * 100) / 100;
+        const roundedArea = 0;
+
         const newPolygon = {
             id: newFeature.id,
             area: roundedArea,
@@ -519,12 +522,12 @@ console.log('Math.PI / 180',Math.PI / 180)
 
     const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
         if (!mapRef.current) return;
-        console.log('1');
+        // console.log('1');
         const features = mapRef.current.queryRenderedFeatures(e.point, {
             layers: polygons.map(p => `extrusion-${p.id}`)
         });
-        console.log('2');
-        console.log(activePolygon);
+        // console.log('2');
+        // console.log(activePolygon);
 
         if (features && features.length > 0) {
             const feature = features[0];
@@ -689,7 +692,6 @@ console.log('Math.PI / 180',Math.PI / 180)
     const updateExtrusionLayers = () => {
         if (!mapRef.current || !drawRef.current) return;
         polygons.forEach(polygon => {
-            checkAndExportJson();
             if (mapRef.current!.getLayer(`extrusion-${polygon.id}`)) {
                 mapRef.current!.setPaintProperty(
                     `extrusion-${polygon.id}`,
@@ -736,21 +738,14 @@ console.log('Math.PI / 180',Math.PI / 180)
         setValue(newValue);
     };
     const [previousJson, setPreviousJson] = useState<string | null>(null);
-    const sendMessage = (jsonData: string) => {
-        if (stompClient && stompClient.active) {
-            stompClient.publish({
-                destination: '/app/sendMessage',
-                body: jsonData, 
-            });
-            console.log('JSON:', jsonData);
-        } else {
-            console.error('STOMP client is not active');
-        }
-    };
+
+
     const createJsonFile = useCallback(async (): Promise<string | 0> => {
         if (drawRef.current) {
             const geoData = drawRef.current.getAll();
+            const projectId = getProjectId();
             const exportData = {
+                projectId: projectId,
                 geoData: geoData,
                 polygonInfo: polygons
             };
@@ -758,46 +753,43 @@ console.log('Math.PI / 180',Math.PI / 180)
         }
         return 0;
     }, [polygons]);
-    const exportPolygonsToJSON = async () => {
-
+    const sendMessage = (data: any) => {
         const projectId = getProjectId();
-        if (projectId !== null) {
-            try {
-                const jsonString = await createJsonFile();
-
-                if (typeof jsonString === 'string') {
-                    const importedPolygonData = convertToImportedPolygonData(jsonString);
-                    await saveJsonProject(projectId, importedPolygonData);
-                    const projectData_2 = await fetchProject(projectId);
-                    sendMessage(projectId!.toString());
-                } else {
-                    console.error('Ошибка');
+        if (stompClient && stompClient.active) {
+            stompClient.publish({
+                destination: `/app/sendMessage/${projectId}`,
+                body: JSON.stringify(data), // Убедитесь, что data - это объект, а не строка
+                headers: {
+                    'content-type': 'application/json' // Важно указать content-type
                 }
-            } catch (error) {
-                console.error('Ошибка', error);
-            }
+            });
+            // stompClient.publish({
+            //     destination: `/app/sendMessage/${projectId}`,
+            //     body: JSON.stringify(data), // Убедитесь, что data - это объект, а не строка
+            //
+            // });
+            console.log(data);
+        } else {
+            console.error('STOMP client is not active');
         }
     };
 
-    const checkAndExportJson = useCallback(async () => {
-        try {
-            const currentJson = await createJsonFile();
-
-            if (typeof currentJson === 'string') {
-                if (previousJson === null || previousJson !== currentJson) {
-
-                    setPreviousJson(currentJson);
-
-                   // await exportPolygonsToJSON();
-                } else {
+    const exportPolygonsToJSON = async () => {
+        console.log('ExportPolygonsToJSON-1');
+        const projectId = getProjectId();
+        if (projectId !== null) {
+            try {
+                console.log('ExportPolygonsToJSON-2');
+                const jsonString = await createJsonFile();
+                if (typeof jsonString === 'string') {
+                    const jsonData = JSON.parse(jsonString); // Парсим строку в объект
+                    sendMessage(jsonData); // Отправляем объект
                 }
-            } else {
-                console.error('Ошибка');
+            } catch (error) {
+                console.error('Error exporting polygons', error);
             }
-        } catch (error) {
-            console.error('Ошибка', error);
         }
-    }, [previousJson, createJsonFile, exportPolygonsToJSON]);
+    };
     const importPolygonsFromJSON = useCallback((jsonData: ImportedPolygonData) => {
         try {
             if (jsonData.geoData && jsonData.polygonInfo && drawRef.current) {
@@ -856,7 +848,7 @@ console.log('Math.PI / 180',Math.PI / 180)
 
     const handleSendCoefficients = async () => {
         const projectId = getProjectId();
-        console.log('activePolygonactivePolygonactivePolygon', activePolygon);
+        //console.log('activePolygonactivePolygonactivePolygon', activePolygon);
 
         await onSetFactCoeff(
             projectId,
@@ -875,12 +867,12 @@ console.log('Math.PI / 180',Math.PI / 180)
 
     const loadTEP = async () => {
         const apId = activePolygon?.id;
-        console.log(apId);
+        // console.log(apId);
         if (apId) {
             try {
-                console.log('apId', apId);
+                // console.log('apId', apId);
                 const tep_inf = await fetchTEPofID(activePolygon.id);
-                console.log('TEP_INF_OPOPO', tep_inf.techEconPerformanceFactual);
+                //console.log('TEP_INF_OPOPO', tep_inf.techEconPerformanceFactual);
                 setTeps(tep_inf.techEconPerformanceFactual);
             } catch (error) {
                 console.error('Error fetching TEP data:', error);
@@ -1272,7 +1264,7 @@ console.log('Math.PI / 180',Math.PI / 180)
         // mapRef.current!.removeLayer('delete-build-all-local');
         // mapRef.current!.removeLayer('delete-build-closely');
         // mapRef.current!.removeLayer('delete-build-local-closely');
-         mapRef.current!.removeLayer('delete-build-all-local');
+        mapRef.current!.removeLayer('delete-build-all-local');
 
         mapRef.current!.addLayer({
             'id': 'delete-build-global',
@@ -1420,7 +1412,7 @@ console.log('Math.PI / 180',Math.PI / 180)
                         placement="left"
                         onClick={handleToggle} icon={<GatewayOutlined/>}
                         style={{insetInlineEnd: 50}}
-                        >
+                    >
                         <FloatButton onClick={handleAllMap} tooltip="Полная карта"/>
                         <FloatButton onClick={handleOnlyLocal} tooltip="Только территория"/>
                     </FloatButton.Group>
