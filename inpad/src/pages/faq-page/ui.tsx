@@ -1,11 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import {PictureComponent} from "../../widget/main-page/main-block";
-import logoImage from "../../shared/ui/img/Inpadlogo.png";
-import {Avatar, Button, Layout} from "antd";
-import {FrownOutlined, UserOutlined} from "@ant-design/icons";
-import {CreateProjectButton, HeaderComponent} from "../../widget/project/ui";
+import {HeaderComponent} from "../../widget/project/ui";
 import {QuestionComponent} from "../../widget/faq/question";
-import React from "react";
 
 export const FaqPage = observer(() => {
 

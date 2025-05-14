@@ -1,7 +1,6 @@
 import {Button, Image} from 'antd';
 import logo1 from "../../../shared/ui/img/logo-man-page.png";
 import {useNavigate} from "react-router-dom";
-import {projectStore} from "../../../entities/project/model";
 
 export const PictureComponent = () => {
     const navigate = useNavigate();

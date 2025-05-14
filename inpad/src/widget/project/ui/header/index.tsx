@@ -3,11 +3,8 @@ import { UserOutlined,ArrowRightOutlined} from '@ant-design/icons';
 import logoImage from '../../../../shared/ui/img/Inpadlogo.png';
 import {useNavigate} from "react-router-dom";
 import {getUserDataById, getUserId} from "../../../../shared/api/users";
-import React, {useEffect, useState} from "react";
-import {getAuthToken} from "../../../../shared/api/http-client";
-import {Client} from "@stomp/stompjs";
-import SockJS from "sockjs-client";
-import {fetchProject, getProjectId} from "../../../../shared/api/projects";
+import {useEffect, useState} from "react";
+
 
 const { Header } = Layout;
 

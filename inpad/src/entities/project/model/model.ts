@@ -43,11 +43,11 @@ export type Project = {
     projectname: string;
     state: boolean;
     projectinfo: string;
-    startcoordinates: any;
-    insidecoordinates: any;
-    outsidecoordinates: any;
+    startCoordinates: any;
+    insideCoordinates: any;
+    outsideCoordinates: any;
     dtcreation: string,
     dtupdate: string;
-    projectData: ProjectData;
+    projectdata: ProjectData;
     userList: User[];
 };

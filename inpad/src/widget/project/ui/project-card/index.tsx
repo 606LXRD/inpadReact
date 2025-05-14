@@ -14,6 +14,7 @@ import '@ant-design/v5-patch-for-react-19';
 import {useNavigate} from "react-router-dom";
 import styles from './styles.module.css';
 import {projectStore} from '../../../../entities/project/model'
+import {ProjectData} from "../../../../shared/api/projects/model.ts";
 export interface ProjectCardProps {
     project: Project;
 }
@@ -31,10 +32,13 @@ export interface Project {
     projectname: string;
     state: boolean;
     projectinfo: string;
-    projectdata: any;
+    startCoordinates: any;
+    insideCoordinates: any;
+    outsideCoordinates: any;
+    dtcreation: string,
+    dtupdate: string;
+    projectdata: ProjectData;
     userList: User[];
-    dtcreation: Date;
-    dtupdate: Date;
 }
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     const [showButtons, setShowButtons] = useState(false);
@@ -47,7 +51,6 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
     const primarySrc = `/${project.id}.png`;
     const [imageSrc, setImageSrc] = React.useState(primarySrc);
-    const [newProject, setNewProject] = useState(true);
 
     const navigate = useNavigate();
     const handleButtonClick = (buttonType: 'addusers' | 'delete' | 'edit') => {
@@ -85,24 +88,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             console.error('Ошибка при обновлении проекта:', error);
         }
     };
-    const checkNewProject = async () => {
-        try {
-            const projectId = project.id;
-            const response = await fetchProject(projectId);
-            console.log(response.projectData);
-            if(response.projectData) {
-                setNewProject(true);
-                console.log('true');
-            }
-            else {
-                setNewProject(false);
-                console.log('false');
 
-            }
-        } catch (error) {
-            console.error('Ошибка при обновлении проекта:', error);
-        }
-    };
     const handleDeleteProject =  () => {
         console.log('Проект успешно eeee3333ee:');
 
@@ -246,7 +232,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                         <h2 className={styles.projectName}>
                             {project.projectname || 'Без названия'}
                         </h2>
-                        <p className={styles.projectDate}>{project.dtcreation}</p>
+                        <p className={styles.projectDate}>
+                            {project.dtcreation}
+                        </p>
                     </>
                 )}
             </div>

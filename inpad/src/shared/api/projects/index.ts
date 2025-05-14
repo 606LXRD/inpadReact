@@ -1,6 +1,6 @@
 import { getUserDataById, getUserId,} from "../users";
 import {UserData} from "../users/model.ts";
-import {Project, User, ProjectData,} from "./model.ts";
+import {Project, User, ProjectData, TEPResponse} from "./model.ts";
 import {httpClient,getAuthToken,setAuthHeader} from "../http-client";
 import {projectStore} from "../../../entities/project/model";
 
@@ -108,12 +108,12 @@ export const onUpdate = async (id: number, projectName: string) => {
         projectName: projectName,
         state: project.state,
         projectInfo: project.projectinfo,
-        startCoordinates: project.startcoordinates,
-        insideCoordinates: project.startcoordinates,
-        outsideCoordinates: project.startcoordinates,
+        startCoordinates: project.startCoordinates,
+        insideCoordinates: project.insideCoordinates,
+        outsideCoordinates: project.outsideCoordinates,
         dtCreation: project.dtcreation,
         dtUpdate: project.dtupdate,
-        projectData: project.projectData,
+        projectData: project.projectdata,
         userList: project.userList,
     };
 
@@ -141,12 +141,12 @@ export const updateUserListForProject = async (id: number, userList: User[]) => 
         projectName: project.projectname,
         state: project.state,
         projectInfo: project.projectinfo,
-        startCoordinates: project.startcoordinates,
-        insideCoordinates: project.startcoordinates,
-        outsideCoordinates: project.startcoordinates,
+        startCoordinates: project.startCoordinates,
+        insideCoordinates: project.insideCoordinates,
+        outsideCoordinates: project.outsideCoordinates,
         dtCreation: project.dtcreation,
         dtUpdate: project.dtupdate,
-        projectData: project.projectData,
+        projectData: project.projectdata,
         userList: userList,
     };
 
@@ -219,7 +219,7 @@ export const setAllCordsForProject = async (projectId: number, start_coordinates
         outsideCoordinates: outside_coordinates,
         dtCreation: project.dtcreation,
         dtUpdate: project.dtupdate,
-        projectData: project.projectData,
+        projectData: project.projectdata,
         userList: project.userList,
     };
 
@@ -274,7 +274,7 @@ utilCoeff: number,
     }).json();
 };
 
-export const fetchTEP = async (id: number): Promise<Project> => {
+export const fetchTEP = async (id: string): Promise<Project> => {
     const authToken = getAuthToken();
     if (!authToken) {
         throw new Error('Authentication token is missing');
@@ -287,7 +287,7 @@ export const fetchTEP = async (id: number): Promise<Project> => {
     }).json<Project>();
 };
 
-export const fetchTEPofID = async (id: number): Promise<Project> => {
+export const fetchTEPofID = async (id: string): Promise<TEPResponse> => {
     const authToken = getAuthToken();
     if (!authToken) {
         throw new Error('Authentication token is missing');
@@ -297,6 +297,5 @@ export const fetchTEPofID = async (id: number): Promise<Project> => {
         headers: {
             Authorization: `Bearer ${authToken}`,
         },
-    }).json<Project>();
-};
-
+    }).json<TEPResponse>();
+}

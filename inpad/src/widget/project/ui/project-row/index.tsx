@@ -41,8 +41,12 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({ projects }) => {
                             boxSizing: 'border-box',
                         }}
                     >
-                        <ProjectCard project={project}/>
-                    </motion.div>
+                        <ProjectCard
+                            project={{
+                                ...project,
+                                projectdata: project.projectdata,
+                            }}
+                        />                    </motion.div>
                     </AnimatePresence>
                 </Col>
                 ))}

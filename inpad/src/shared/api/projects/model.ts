@@ -33,12 +33,12 @@ export type Project = {
     projectname: string;
     state: boolean;
     projectinfo: string;
-    startcoordinates: any;
-    insidecoordinates: any;
-    outsidecoordinates: any;
-    dtcreation: Date,
-    dtupdate: Date;
-    projectData: ProjectData;
+    startCoordinates: any;
+    insideCoordinates: any;
+    outsideCoordinates: any;
+    dtcreation: string,
+    dtupdate: string;
+    projectdata: ProjectData;
     userList: User[];
 };
 
@@ -66,7 +66,7 @@ export type coefficient_factual = {
     utilCoeff: number;
 };
 
-export interface coefficient_normative {
+export type coefficient_normative ={
     project_id: number;
     model_id : string;
     tep_id: number;
@@ -82,3 +82,36 @@ export interface coefficient_normative {
     recreation_coeff: number;
     util_coeff: number;
 };
+
+export type TechEconPerformanceFactual= {
+    id: number;
+    floorNum: number;
+    apartsArea: number;
+    commArea: number;
+    douArea: number;
+    apartsParkingSpotAmount: number;
+    commParkingSpotAmount: number;
+    residentsNum: number;
+    douPlacesNum: number;
+    souPlacesNum: number;
+    totalDouArea: number;
+    totalPlaygroundArea: number;
+    totalSportgroundArea: number;
+    totalRecreationArea: number;
+    totalUtilArea: number;
+}
+
+export type TEPResponse ={
+    id: number;
+    projectId: number;
+    modelId: string;
+    tepId: number;
+    flatAreaCoeff: number;
+    commAreaCoeff: number;
+    parkingFlatCoeff: number;
+    parkingCommCoeff: number;
+    residentsCoeff: number;
+    ddu10Coeff: number;
+    utilCoeff: number;
+    techEconPerformanceFactual: TechEconPerformanceFactual;
+}

@@ -8,7 +8,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import {useNavigate} from "react-router-dom";
 import {
-    saveJsonProject,
     getProjectId,
     fetchProject,
     onSetFactCoeff,
@@ -18,7 +17,6 @@ import {Client} from "@stomp/stompjs";
 import {getAuthToken} from '../../shared/api/http-client';
 import SockJS from 'sockjs-client';
 import 'global';
-import logo from "../../shared/ui/img/logo.png";
 import {getUserId} from "../../shared/api/users";
 
 
@@ -37,16 +35,29 @@ interface TechEconPerformance {
     douArea: number;
     apartsParkingSpotAmount: number;
     commParkingSpotAmount: number;
-    douPlacesNum: number;
     residentsNum: number;
+    douPlacesNum: number;
     souPlacesNum: number;
     totalDouArea: number;
     totalPlaygroundArea: number;
-    totalRecreationArea: number;
     totalSportgroundArea: number;
+    totalRecreationArea: number;
     totalUtilArea: number;
-    objectSubType: string | null;
-    objectType: string | null;
+}
+
+interface TEPResponse {
+    id: number;
+    projectId: number;
+    modelId: string;
+    tepId: number;
+    flatAreaCoeff: number;
+    commAreaCoeff: number;
+    parkingFlatCoeff: number;
+    parkingCommCoeff: number;
+    residentsCoeff: number;
+    ddu10Coeff: number;
+    utilCoeff: number;
+    techEconPerformanceFactual: TechEconPerformance; // <-- нужное поле
 }
 interface ImportedPolygonData {
     projectId: number | null;
@@ -141,11 +152,12 @@ export const ViewerPage: React.FC = () => {
         });
         const projectId = getProjectId();
         client.onConnect = (frame) => {
-            client.subscribe(`/topic/messages/`, (message) => {
+            client.subscribe(`/topic/messages/${projectId}`, (message) => {
                 if (message.body) {
                     setMessages((prevMessages) => [...prevMessages, message.body]);
                     const importedData = convertToImportedPolygonData(message.body);
                     importPolygonsFromJSON(importedData);
+                    console.log(frame,messages);
                 }
             });
         };
@@ -165,8 +177,10 @@ export const ViewerPage: React.FC = () => {
     }, []);
     useEffect(() => {
         activePolygonIdRef.current = activePolygonId;
-        //  console.log('activePolygonIdRef',activePolygonIdRef.current);
-        loadTEP();
+          console.log('activePolygonIdRef',activePolygonIdRef.current);
+          if(activePolygonIdRef.current!==null) {
+              loadTEP(activePolygonIdRef.current);
+          }
     }, [activePolygonId]);
     useEffect(() => {
         isAdjustingFloorsRef.current = isAdjustingFloors;
@@ -174,12 +188,7 @@ export const ViewerPage: React.FC = () => {
 
     const [centerCoordinates, setCenterCoordinates] = useState<[number, number]>();
     const [insideCoordinates, setInsideCoordinates] = useState<[number, number][]>([]);
-    const [projectName, setProjectName] = useState(null);
-
-    const [imageSrc, setImageSrc] = React.useState(null);
-    const [newProject, setNewProject] = useState(true);
-
-
+    const [projectName, setProjectName] = useState<string | null>(null);
 
     useEffect(() => {
         const loadProjectData = async () => {
@@ -384,12 +393,15 @@ export const ViewerPage: React.FC = () => {
 
     const loadProject = async () => {
         const projectId = getProjectId();
+        console.log('projectId',projectId);
         if (projectId !== null) {
             try {
                 const projectData = await fetchProject(projectId);
                 const jsonPolyData = projectData.projectdata;
+                console.log(projectData.projectdata);
                 if (jsonPolyData) {
                     importPolygonsFromJSON(jsonPolyData as ImportedPolygonData);
+                    console.log('importPolygonsFromJSON');
                 }
 
             } catch (error) {
@@ -443,7 +455,6 @@ export const ViewerPage: React.FC = () => {
 
     const handleDrawCreate = (e: any) => {
         const newFeature = e.features[0];
-        const area = turf.area(newFeature);
         const roundedArea = 0;
 
         const newPolygon = {
@@ -713,16 +724,7 @@ export const ViewerPage: React.FC = () => {
         });
     };
 
-    const getColorForFloors = (): string => {
-        return 'rgb(195,195,195)';
-        // return 'rgb(237, 237, 237)';
-    };
-
     const [open, setOpen] = useState(false);
-
-    const hide = () => {
-        setOpen(false);
-    };
 
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen);
@@ -737,8 +739,6 @@ export const ViewerPage: React.FC = () => {
     const handleChange = (newValue: string) => {
         setValue(newValue);
     };
-    const [previousJson, setPreviousJson] = useState<string | null>(null);
-
 
     const createJsonFile = useCallback(async (): Promise<string | 0> => {
         if (drawRef.current) {
@@ -758,16 +758,11 @@ export const ViewerPage: React.FC = () => {
         if (stompClient && stompClient.active) {
             stompClient.publish({
                 destination: `/app/sendMessage/${projectId}`,
-                body: JSON.stringify(data), // Убедитесь, что data - это объект, а не строка
+                body: JSON.stringify(data),
                 headers: {
-                    'content-type': 'application/json' // Важно указать content-type
+                    'content-type': 'application/json'
                 }
             });
-            // stompClient.publish({
-            //     destination: `/app/sendMessage/${projectId}`,
-            //     body: JSON.stringify(data), // Убедитесь, что data - это объект, а не строка
-            //
-            // });
             console.log(data);
         } else {
             console.error('STOMP client is not active');
@@ -848,35 +843,40 @@ export const ViewerPage: React.FC = () => {
 
     const handleSendCoefficients = async () => {
         const projectId = getProjectId();
-        //console.log('activePolygonactivePolygonactivePolygon', activePolygon);
 
-        await onSetFactCoeff(
-            projectId,
-            activePolygon.id, // model_id
-            coeffValues.flat_area_coeff,
-            coeffValues.comm_area_coeff,
-            coeffValues.parking_flat_coeff,
-            coeffValues.parking_comm_coeff,
-            coeffValues.residents_coeff,
-            coeffValues.ddu10_coeff,
-            coeffValues.util_coeff
-        );
-
-
+        if (projectId !== null && activePolygon) {
+            try {
+                await onSetFactCoeff(
+                    projectId,
+                    activePolygon.id,
+                    coeffValues.flat_area_coeff,
+                    coeffValues.comm_area_coeff,
+                    coeffValues.parking_flat_coeff,
+                    coeffValues.parking_comm_coeff,
+                    coeffValues.residents_coeff,
+                    coeffValues.ddu10_coeff,
+                    coeffValues.util_coeff
+                );
+            } catch (error) {
+                console.error('Error', error);
+            }
+        }
     }
 
-    const loadTEP = async () => {
-        const apId = activePolygon?.id;
-        // console.log(apId);
-        if (apId) {
-            try {
-                // console.log('apId', apId);
-                const tep_inf = await fetchTEPofID(activePolygon.id);
-                //console.log('TEP_INF_OPOPO', tep_inf.techEconPerformanceFactual);
-                setTeps(tep_inf.techEconPerformanceFactual);
-            } catch (error) {
-                console.error('Error fetching TEP data:', error);
+
+    const loadTEP = async (apId: string) => {
+        console.log('apID', apId);
+        try {
+            const tep_inf: TEPResponse = await fetchTEPofID(apId); // Теперь TS знает про .techEconPerformanceFactual
+            console.log('tep_inf_opopo', tep_inf);
+
+            if (tep_inf?.techEconPerformanceFactual) {
+                setTeps(tep_inf.techEconPerformanceFactual); //  Теперь всё работает
+            } else {
+                console.warn('Фактические данные ТЭП отсутствуют');
             }
+        } catch (error) {
+            console.error('Ошибка при загрузке данных ТЭП:', error);
         }
     };
 

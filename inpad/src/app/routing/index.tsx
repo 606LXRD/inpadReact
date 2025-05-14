@@ -5,7 +5,6 @@ import { ProjectListPage } from "../../pages/project-list-page";
 import { ViewerPage } from "../../pages/viewer-list-page";
 import { PreViewerPage } from "../../pages/pre-viewer-page";
 import { MainPage } from "../../pages/main-page";
-import { WebSocketComponent } from "../../pages/web-socket-test";
 import { FaqPage } from "../../pages/faq-page";
 import { AnimatedRoutes } from "../../shared/motion";
 
@@ -45,10 +44,6 @@ export const router = createBrowserRouter([
             {
                 path: "previewer/:projectId",
                 element: <PreViewerPage />,
-            },
-            {
-                path: "websocketcomponent",
-                element: <WebSocketComponent />,
             },
             {
                 path: "faq",
